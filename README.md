@@ -15,8 +15,8 @@ The task list is a Notion page, so it can be edited without touching code.
 | ------------- | --------------------------------------------------------- |
 | Framework     | Next.js 16 (App Router), TypeScript, plain CSS Modules     |
 | Sign-in       | Auth.js v5 with the Google provider (JWT sessions, no DB)  |
-| Task list     | A Notion page, read through the Notion API, cached ~1 min  |
-| Progress data | Postgres on Neon (`task_completions` table, auto-created)  |
+| Task list     | A Notion page; a copy is saved and refreshed every minute |
+| Data          | Postgres on Neon (tables are created automatically)       |
 | Email         | Resend                                                    |
 | Hosting       | Vercel                                                    |
 
@@ -31,7 +31,11 @@ explains the format:
   its resources. Pasted bookmarks work too.
 - Everything above the first heading is hidden in the app.
 
-Changes appear in the app within about a minute.
+The app shows a saved copy of the page and refreshes it in the background
+whenever it's over a minute old, because reading the whole page from Notion
+takes around half a minute. So an edit shows up a minute or so later, after a
+reload. The very first visit after setup waits for that full read: open the
+site once yourself after deploying.
 
 Progress is stored against each task's Notion block id. Renaming or moving a
 task keeps everyone's ticks; deleting it and typing it again creates a new task.
@@ -61,10 +65,10 @@ src/app/actions.ts           Server actions: sign in/out, mark task done/undone
 src/app/globals.css          Design tokens (colors, type, spacing)
 src/auth.ts                  Auth.js config and who is allowed to sign in
 src/proxy.ts                 Redirects signed-out visitors to /login
-src/lib/curriculum.ts        Loads the task list (Notion, or the sample)
+src/lib/curriculum.ts        Loads the task list (saved copy of Notion, or the sample)
 src/lib/notion/client.ts     Fetches the Notion page's blocks
 src/lib/notion/parse.ts      Turns those blocks into sections and tasks
-src/lib/progress.ts          Saves completions (Postgres, or a local file)
+src/lib/store.ts             Saves completions and the task list copy (Postgres, or local files)
 src/lib/notify.ts            Sends the completion email
 src/content/                 Types and the sample task list
 tests/                       Tests for the Notion reader

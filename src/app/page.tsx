@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getCurriculum } from "@/lib/curriculum";
 import { getCurrentUser } from "@/lib/current-user";
-import { completedTaskIds } from "@/lib/progress";
+import { completedTaskIds } from "@/lib/store";
 import { signOutAction } from "./actions";
 import { TaskList } from "./task-list";
 import styles from "./page.module.css";

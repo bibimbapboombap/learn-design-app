@@ -6,7 +6,7 @@ import { signIn, signOut } from "@/auth";
 import { allTasks, getCurriculum } from "@/lib/curriculum";
 import { getCurrentUser } from "@/lib/current-user";
 import { sendCompletionEmail } from "@/lib/notify";
-import { completedTaskIds, markComplete, markIncomplete } from "@/lib/progress";
+import { completedTaskIds, markComplete, markIncomplete } from "@/lib/store";
 
 export async function signInWithGoogle() {
   await signIn("google", { redirectTo: "/" });
