@@ -13,6 +13,9 @@ export type Task = {
   title: string;
   description?: string;
   resources: Resource[];
+  // Info cards (Notion callouts) have no checkbox and don't count as tasks.
+  note?: boolean;
+  icon?: string;
 };
 
 export type Section = {

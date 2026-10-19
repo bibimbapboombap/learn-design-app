@@ -27,6 +27,8 @@ explains the format:
 
 - Each **heading** starts a section. Text right under it becomes the section intro.
 - Each **bullet** (or to-do, numbered item, toggle) under a heading is a task.
+- A **callout** under a heading is an info card: shown with its icon, no
+  checkbox, and not counted as a task.
 - Indent under a task: plain text becomes its description, **links** become
   its resources. Pasted bookmarks work too.
 - Everything above the first heading is hidden in the app.

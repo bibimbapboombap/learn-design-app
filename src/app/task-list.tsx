@@ -22,7 +22,7 @@ export function TaskList({ sections, completedIds }: Props) {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const tasks = sections.flatMap((section) => section.tasks);
+  const tasks = sections.flatMap((section) => section.tasks).filter((task) => !task.note);
   const doneCount = tasks.filter((task) => completed.has(task.id)).length;
   const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
 
@@ -78,21 +78,31 @@ export function TaskList({ sections, completedIds }: Props) {
 
           <ul className={styles.tasks}>
             {section.tasks.map((task) => {
-              const done = completed.has(task.id);
+              const done = !task.note && completed.has(task.id);
               const inputId = `task-${task.id}`;
               return (
-                <li key={task.id} className={styles.task} data-done={done}>
-                  <input
-                    id={inputId}
-                    type="checkbox"
-                    className={styles.checkbox}
-                    checked={done}
-                    onChange={(event) => toggle(task.id, event.target.checked)}
-                  />
+                <li key={task.id} className={styles.task} data-done={done} data-note={task.note}>
+                  {task.note ? (
+                    <span className={styles.icon} aria-hidden="true">
+                      {task.icon ?? "💡"}
+                    </span>
+                  ) : (
+                    <input
+                      id={inputId}
+                      type="checkbox"
+                      className={styles.checkbox}
+                      checked={done}
+                      onChange={(event) => toggle(task.id, event.target.checked)}
+                    />
+                  )}
                   <div className={styles.body}>
-                    <label htmlFor={inputId} className={styles.taskTitle}>
-                      {task.title}
-                    </label>
+                    {task.note ? (
+                      <p className={styles.taskTitle}>{task.title}</p>
+                    ) : (
+                      <label htmlFor={inputId} className={styles.taskTitle}>
+                        {task.title}
+                      </label>
+                    )}
                     {task.description && (
                       <p className={styles.taskDescription}>{task.description}</p>
                     )}

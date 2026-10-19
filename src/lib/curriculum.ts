@@ -50,6 +50,7 @@ function refresh(token: string, page: string): Promise<Section[]> {
   return refreshing;
 }
 
+// Checkable tasks only, without info cards.
 export function allTasks(sections: Section[]): Task[] {
-  return sections.flatMap((section) => section.tasks);
+  return sections.flatMap((section) => section.tasks).filter((task) => !task.note);
 }

@@ -38,8 +38,10 @@ const tree: Record<string, any[]> = {
   "h-toggle": [
     b("t3", "toggle", [t("Redesign a screen")], true),
     b("blank", "bulleted_list_item", [t("   ")]),
+    b("note", "callout", [t("Weekly rhythm")], true, { icon: { type: "emoji", emoji: "🗓️" } }),
   ],
   t3: [b("d3", "paragraph", [t("Line one")]), b("d4", "paragraph", [t("Line two")])],
+  note: [b("n1", "paragraph", [t("3–4 h reading.")]), b("n2", "bulleted_list_item", [t("Guide", "https://example.com/guide")])],
 };
 
 test("reads a Notion page into sections and tasks", async () => {
@@ -75,8 +77,18 @@ test("reads a Notion page into sections and tasks", async () => {
   ]);
   assert.deepEqual(found.tasks[1].resources.map((r: any) => r.title),
     ["practicaltypography.com", "youtube.com/watch", "A", "B"]);
-  assert.equal(practice.tasks.length, 1);
+  assert.equal(practice.tasks.length, 2);
   assert.equal(practice.tasks[0].description, "Line one\nLine two");
+  assert.equal(practice.tasks[0].note, undefined);
+  // A callout becomes an info card, keeping its icon, description and links.
+  assert.deepEqual(practice.tasks[1], {
+    id: "note",
+    title: "Weekly rhythm",
+    description: "3–4 h reading.",
+    resources: [{ title: "Guide", url: "https://example.com/guide" }],
+    note: true,
+    icon: "🗓️",
+  });
 });
 
 test("accepts a page id or URL for NOTION_PAGE_ID", () => {

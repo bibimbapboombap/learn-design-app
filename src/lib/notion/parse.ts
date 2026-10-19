@@ -6,8 +6,10 @@ import type { NotionBlock, RichText } from "./client";
 // - Each heading starts a section. Paragraphs between the heading and its first
 //   task become the section's description.
 // - Each list item, to-do or toggle under a heading is a task.
-// - Under a task, lines without links become its description and links become
-//   its resources.
+// - Each callout under a heading is an info card: shown like a task, but with
+//   its icon instead of a checkbox, and not counted as a task.
+// - Under a task or callout, lines without links become its description and
+//   links become its resources.
 // - Everything before the first heading is ignored.
 // Toggle headings work too: their nested blocks belong to that section.
 
@@ -31,6 +33,9 @@ export function parseCurriculum(blocks: NotionBlock[]): Section[] {
     if (TASKS.has(block.type)) {
       const task = parseTask(block);
       if (task) current.tasks.push(task);
+    } else if (block.type === "callout") {
+      const note = parseTask(block);
+      if (note) current.tasks.push({ ...note, note: true, icon: calloutEmoji(block) });
     } else if (block.type === "paragraph" && current.tasks.length === 0) {
       const text = plainText(richText(block));
       if (text) current.description = joinLines(current.description, text);
@@ -74,6 +79,11 @@ function parseTask(block: NotionBlock): Task | undefined {
   }
 
   return { id: block.id, title, description, resources };
+}
+
+function calloutEmoji(block: NotionBlock): string | undefined {
+  const icon = (block.callout as { icon?: { type?: string; emoji?: string } } | undefined)?.icon;
+  return icon?.type === "emoji" ? icon.emoji : undefined;
 }
 
 function richText(block: NotionBlock): RichText[] {

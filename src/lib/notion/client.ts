@@ -28,6 +28,7 @@ const EXPANDABLE = new Set([
   "numbered_list_item",
   "to_do",
   "toggle",
+  "callout",
 ]);
 
 // Accepts a bare id (with or without dashes) or a full Notion page URL.
