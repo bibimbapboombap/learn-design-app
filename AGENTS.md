@@ -10,9 +10,10 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project notes
 
-- Single-page learning tracker: Google sign-in (Auth.js v5, `src/auth.ts`), task list from `src/content/curriculum.ts`, completions in Postgres (`src/lib/progress.ts`), email on completion via Resend (`src/lib/notify.ts`).
+- Single-page learning tracker: Google sign-in (Auth.js v5, `src/auth.ts`), task list read from a Notion page (`src/lib/curriculum.ts`, `src/lib/notion/`), completions in Postgres (`src/lib/progress.ts`), email on completion via Resend (`src/lib/notify.ts`).
 - `cacheComponents` is on. Anything that reads the session must sit behind `<Suspense>` and go through `getCurrentUser()` in `src/lib/current-user.ts`.
 - Every server action re-checks the session itself; never trust ids or user data sent from the client.
-- Task ids in `curriculum.ts` are storage keys. Don't rename them.
-- Styling is plain CSS Modules plus the tokens in `src/app/globals.css`.
-- Check work with `npm run lint`, `npm run typecheck` and `npm run build`.
+- Task ids are Notion block ids and double as storage keys for completions. The page format the parser expects is documented in `src/lib/notion/parse.ts` and in a callout on the Notion page; keep the two in sync.
+- `src/lib/notion/*` has no runtime imports so `npm test` can run it with plain Node. Keep it that way.
+- Styling is plain CSS Modules plus the tokens in `src/app/globals.css`. Light theme only, Notion-like, must work on phones.
+- Check work with `npm run lint`, `npm run typecheck`, `npm test` and `npm run build`.

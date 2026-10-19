@@ -1,16 +1,24 @@
 .page {
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: var(--space-12) var(--space-4);
+  padding: var(--space-12) var(--space-4) 96px;
 }
 
 .header {
   margin-bottom: var(--space-8);
 }
 
+.icon {
+  font-size: 56px;
+  line-height: 1;
+  margin-bottom: var(--space-3);
+}
+
 .title {
-  font-size: 2rem;
+  font-size: 2.5rem;
+  font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.01em;
   margin-bottom: var(--space-2);
 }
 
@@ -24,24 +32,74 @@
 
 .userBar {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  margin-bottom: var(--space-8);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+  margin-bottom: var(--space-6);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
   font-size: 0.9375rem;
 }
 
-.email {
-  color: var(--color-text-muted);
+.avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-surface-hover);
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
-.signOut {
+.who {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--space-2);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.email {
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.button {
+  flex: none;
+  min-height: 36px;
+  padding: 0 var(--space-3);
   border: 1px solid var(--color-border);
+  border-radius: 6px;
   background: transparent;
-  border-radius: var(--radius);
-  padding: var(--space-1) var(--space-3);
+  font-size: 0.875rem;
+}
+
+.button:hover {
+  background: var(--color-surface);
+}
+
+@media (max-width: 600px) {
+  .page {
+    padding-top: var(--space-8);
+  }
+
+  .icon {
+    font-size: 44px;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .who {
+    flex-direction: column;
+  }
 }

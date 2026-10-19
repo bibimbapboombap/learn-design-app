@@ -1,7 +1,7 @@
 "use client";
 
 import { startTransition, useOptimistic, useState } from "react";
-import type { Section } from "@/content/curriculum";
+import type { Section } from "@/content/types";
 import { setTaskCompleted } from "./actions";
 import styles from "./task-list.module.css";
 
@@ -22,10 +22,9 @@ export function TaskList({ sections, completedIds }: Props) {
   );
   const [error, setError] = useState<string | null>(null);
 
-  const total = sections.reduce((sum, section) => sum + section.tasks.length, 0);
-  const doneCount = sections
-    .flatMap((section) => section.tasks)
-    .filter((task) => completed.has(task.id)).length;
+  const tasks = sections.flatMap((section) => section.tasks);
+  const doneCount = tasks.filter((task) => completed.has(task.id)).length;
+  const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
 
   function toggle(taskId: string, done: boolean) {
     setError(null);
@@ -39,11 +38,31 @@ export function TaskList({ sections, completedIds }: Props) {
     });
   }
 
+  if (tasks.length === 0) {
+    return <p className={styles.empty}>No tasks yet. Check back soon.</p>;
+  }
+
   return (
     <div>
-      <p className={styles.progress} aria-live="polite">
-        {doneCount} of {total} tasks done
-      </p>
+      <div className={styles.progress}>
+        <div className={styles.progressLabel} aria-live="polite">
+          <span>
+            {doneCount} of {tasks.length} tasks done
+          </span>
+          <span className={styles.percent}>{percent}%</span>
+        </div>
+        <div
+          className={styles.progressTrack}
+          role="progressbar"
+          aria-label="Tasks done"
+          aria-valuenow={percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div className={styles.progressFill} style={{ width: `${percent}%` }} />
+        </div>
+      </div>
+
       {error && (
         <p className={styles.error} role="alert">
           {error}
@@ -70,23 +89,26 @@ export function TaskList({ sections, completedIds }: Props) {
                     checked={done}
                     onChange={(event) => toggle(task.id, event.target.checked)}
                   />
-                  <div>
+                  <div className={styles.body}>
                     <label htmlFor={inputId} className={styles.taskTitle}>
                       {task.title}
                     </label>
                     {task.description && (
                       <p className={styles.taskDescription}>{task.description}</p>
                     )}
-                    {task.resources && task.resources.length > 0 && (
+                    {task.resources.length > 0 && (
                       <ul className={styles.resources}>
                         {task.resources.map((resource) => (
                           <li key={resource.url}>
-                            <a href={resource.url} target="_blank" rel="noopener noreferrer">
+                            <a
+                              href={resource.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={styles.resource}
+                            >
                               {resource.title}
                             </a>
-                            {resource.kind && (
-                              <span className={styles.kind}> · {resource.kind}</span>
-                            )}
+                            <span className={styles.host}> · {hostOf(resource.url)}</span>
                           </li>
                         ))}
                       </ul>
@@ -100,4 +122,8 @@ export function TaskList({ sections, completedIds }: Props) {
       ))}
     </div>
   );
+}
+
+function hostOf(url: string): string {
+  return new URL(url).hostname.replace(/^www\./, "");
 }

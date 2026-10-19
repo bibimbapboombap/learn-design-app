@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { curriculum } from "@/content/curriculum";
+import { getCurriculum } from "@/lib/curriculum";
 import { getCurrentUser } from "@/lib/current-user";
 import { completedTaskIds } from "@/lib/progress";
 import { signOutAction } from "./actions";
@@ -10,6 +10,9 @@ export default function HomePage() {
   return (
     <main className={styles.page}>
       <header className={styles.header}>
+        <div className={styles.icon} aria-hidden="true">
+          📚
+        </div>
         <h1 className={styles.title}>Design Learning</h1>
         <p className={styles.intro}>
           Work through the tasks below at your own pace. Tick a task off when you finish it.
@@ -26,23 +29,29 @@ export default function HomePage() {
 
 async function Plan() {
   const user = await getCurrentUser();
-  const completedIds = await completedTaskIds(user.email);
+  const [sections, completedIds] = await Promise.all([
+    getCurriculum(),
+    completedTaskIds(user.email),
+  ]);
 
   return (
     <>
       <div className={styles.userBar}>
-        <span>
-          Signed in as <strong>{user.name}</strong>
-          <span className={styles.email}> · {user.email}</span>
+        <span className={styles.avatar} aria-hidden="true">
+          {user.name.charAt(0).toUpperCase()}
+        </span>
+        <span className={styles.who}>
+          <strong className={styles.name}>{user.name}</strong>
+          <span className={styles.email}>{user.email}</span>
         </span>
         <form action={signOutAction}>
-          <button type="submit" className={styles.signOut}>
+          <button type="submit" className={styles.button}>
             Sign out
           </button>
         </form>
       </div>
 
-      <TaskList sections={curriculum} completedIds={completedIds} />
+      <TaskList sections={sections} completedIds={completedIds} />
     </>
   );
 }

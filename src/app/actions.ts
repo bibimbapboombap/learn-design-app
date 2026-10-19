@@ -3,7 +3,7 @@
 import { refresh } from "next/cache";
 import { after } from "next/server";
 import { signIn, signOut } from "@/auth";
-import { allTasks, findTask } from "@/content/curriculum";
+import { allTasks, getCurriculum } from "@/lib/curriculum";
 import { getCurrentUser } from "@/lib/current-user";
 import { sendCompletionEmail } from "@/lib/notify";
 import { completedTaskIds, markComplete, markIncomplete } from "@/lib/progress";
@@ -18,7 +18,8 @@ export async function signOutAction() {
 
 export async function setTaskCompleted(taskId: string, completed: boolean) {
   const user = await getCurrentUser();
-  const task = typeof taskId === "string" ? findTask(taskId) : undefined;
+  const tasks = allTasks(await getCurriculum());
+  const task = tasks.find((t) => t.id === taskId);
   if (!task || typeof completed !== "boolean") throw new Error("Invalid request");
 
   if (completed) {
@@ -30,8 +31,8 @@ export async function setTaskCompleted(taskId: string, completed: boolean) {
         await sendCompletionEmail({
           user,
           taskTitle: task.title,
-          completedCount: allTasks.filter((t) => doneIds.has(t.id)).length,
-          totalCount: allTasks.length,
+          completedCount: tasks.filter((t) => doneIds.has(t.id)).length,
+          totalCount: tasks.length,
         });
       });
     }
