@@ -1,7 +1,9 @@
+import Link from "next/link";
+import { after } from "next/server";
 import { Suspense } from "react";
 import { getCurriculum } from "@/lib/curriculum";
 import { getCurrentUser } from "@/lib/current-user";
-import { completedTaskIds } from "@/lib/store";
+import { completedTaskIds, recordVisit } from "@/lib/store";
 import { signOutAction } from "./actions";
 import { TaskList } from "./task-list";
 import styles from "./page.module.css";
@@ -33,6 +35,12 @@ async function Plan() {
     getCurriculum(),
     completedTaskIds(user.email),
   ]);
+  // Feeds "last visit" on the admin overview; doesn't hold up the page.
+  after(() =>
+    recordVisit(user.email, user.name).catch((error) =>
+      console.error("[visits] Couldn't record visit:", error),
+    ),
+  );
 
   return (
     <>
@@ -44,6 +52,11 @@ async function Plan() {
           <strong className={styles.name}>{user.name}</strong>
           <span className={styles.email}>{user.email}</span>
         </span>
+        {user.isAdmin && (
+          <Link href="/admin" className={styles.button}>
+            Admin
+          </Link>
+        )}
         <form action={signOutAction}>
           <button type="submit" className={styles.button}>
             Sign out

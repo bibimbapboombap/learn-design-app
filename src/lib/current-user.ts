@@ -7,7 +7,18 @@ export type CurrentUser = {
   email: string;
   name: string;
   image?: string;
+  isAdmin: boolean;
 };
+
+// Admins can open /admin. ADMIN_EMAILS (comma-separated) lists them; without
+// it, the people who get the completion emails (NOTIFY_EMAIL) are the admins.
+function isAdmin(email: string): boolean {
+  const list = process.env.ADMIN_EMAILS || process.env.NOTIFY_EMAIL || "";
+  return list
+    .split(",")
+    .map((entry) => entry.trim().toLowerCase())
+    .includes(email.toLowerCase());
+}
 
 // The only place pages and actions read the session from.
 export async function getCurrentUser(): Promise<CurrentUser> {
@@ -22,5 +33,6 @@ export async function getCurrentUser(): Promise<CurrentUser> {
     email,
     name: session.user?.name ?? email,
     image: session.user?.image ?? undefined,
+    isAdmin: isAdmin(email),
   };
 }

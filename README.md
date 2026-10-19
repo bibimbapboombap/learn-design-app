@@ -42,6 +42,16 @@ site once yourself after deploying.
 Progress is stored against each task's Notion block id. Renaming or moving a
 task keeps everyone's ticks; deleting it and typing it again creates a new task.
 
+## Admin overview
+
+<https://learn.vadimgrin.com/admin> shows everyone's progress: recent ticks,
+and per person a progress bar, their latest task and, when expanded, every
+task they've ticked per phase. Only admins can open it; everyone else gets
+"not found". Admins are the addresses in `ADMIN_EMAILS`, or, if that isn't
+set, the notification recipients in `NOTIFY_EMAIL`. People appear once they've
+opened the app (visits are recorded from this feature onwards) or ticked a
+task.
+
 ## Run it locally
 
 ```bash
@@ -63,6 +73,7 @@ terminal.
 src/app/page.tsx             Main page: header, account bar, task list
 src/app/task-list.tsx        Checkboxes and progress bar (client component)
 src/app/login/page.tsx       Sign-in page
+src/app/admin/page.tsx       Admin progress overview
 src/app/actions.ts           Server actions: sign in/out, mark task done/undone
 src/app/globals.css          Design tokens (colors, type, spacing)
 src/auth.ts                  Auth.js config and who is allowed to sign in
@@ -72,8 +83,9 @@ src/lib/notion/client.ts     Fetches the Notion page's blocks
 src/lib/notion/parse.ts      Turns those blocks into sections and tasks
 src/lib/store.ts             Saves completions and the task list copy (Postgres, or local files)
 src/lib/notify.ts            Sends the completion email
+src/lib/overview.ts          Builds the admin overview from people and completions
 src/content/                 Types and the sample task list
-tests/                       Tests for the Notion reader
+tests/                       Tests for the Notion reader and the admin overview
 ```
 
 ## One-time setup
@@ -135,4 +147,4 @@ project. Vercel adds `DATABASE_URL` for you. The table is created on first use.
 | `npm run start`     | Serve the production build      |
 | `npm run lint`      | ESLint                          |
 | `npm run typecheck` | Generate route types, run `tsc` |
-| `npm test`          | Tests for the Notion reader     |
+| `npm test`          | Tests (Notion reader, overview) |

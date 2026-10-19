@@ -6,6 +6,7 @@ import type { Section } from "@/content/types";
 
 // Everything the app saves:
 // - which tasks each person has completed, keyed by their Google email;
+// - everyone who has opened the app, with their first and last visit;
 // - the last task list read from Notion, so pages don't wait on Notion.
 //
 // With DATABASE_URL set (production), records live in Postgres. Without it,
@@ -16,11 +17,28 @@ export type CurriculumSnapshot = {
   fetchedAt: number; // ms since epoch
 };
 
+export type Person = {
+  email: string;
+  name: string;
+  firstSeen: number; // ms since epoch
+  lastSeen: number;
+};
+
+export type Completion = {
+  email: string;
+  taskId: string;
+  completedAt: number; // ms since epoch
+};
+
 type Store = {
   completedTaskIds(email: string): Promise<string[]>;
   // Resolves true only when the task wasn't already marked complete.
   markComplete(email: string, name: string, taskId: string): Promise<boolean>;
   markIncomplete(email: string, taskId: string): Promise<void>;
+  recordVisit(email: string, name: string): Promise<void>;
+  // For the admin overview: everyone, and every completion.
+  listPeople(): Promise<Person[]>;
+  listCompletions(): Promise<Completion[]>;
   readCurriculumSnapshot(): Promise<CurriculumSnapshot | undefined>;
   saveCurriculumSnapshot(sections: Section[]): Promise<void>;
 };
@@ -46,6 +64,14 @@ function postgresStore(databaseUrl: string): Store {
           user_name    text,
           completed_at timestamptz not null default now(),
           primary key (user_email, task_id)
+        )
+      `,
+      sql`
+        create table if not exists people (
+          email      text        primary key,
+          name       text        not null,
+          first_seen timestamptz not null default now(),
+          last_seen  timestamptz not null default now()
         )
       `,
       sql`
@@ -85,6 +111,40 @@ function postgresStore(databaseUrl: string): Store {
         where user_email = ${email} and task_id = ${taskId}
       `;
     },
+    async recordVisit(email, name) {
+      await ensureTables();
+      await sql`
+        insert into people (email, name) values (${email}, ${name})
+        on conflict (email) do update set name = excluded.name, last_seen = now()
+      `;
+    },
+    async listPeople() {
+      await ensureTables();
+      const rows = await sql`
+        select email, name,
+          extract(epoch from first_seen) * 1000 as first_ms,
+          extract(epoch from last_seen) * 1000 as last_ms
+        from people
+      `;
+      return rows.map((row) => ({
+        email: row.email as string,
+        name: row.name as string,
+        firstSeen: Number(row.first_ms),
+        lastSeen: Number(row.last_ms),
+      }));
+    },
+    async listCompletions() {
+      await ensureTables();
+      const rows = await sql`
+        select user_email, task_id, extract(epoch from completed_at) * 1000 as completed_ms
+        from task_completions
+      `;
+      return rows.map((row) => ({
+        email: row.user_email as string,
+        taskId: row.task_id as string,
+        completedAt: Number(row.completed_ms),
+      }));
+    },
     async readCurriculumSnapshot() {
       await ensureTables();
       const rows = await sql`
@@ -112,6 +172,7 @@ function fileStore(): Store {
   const dir = path.join(process.cwd(), ".data");
   const progressFile = path.join(dir, "progress.json");
   const snapshotFile = path.join(dir, "curriculum.json");
+  const peopleFile = path.join(dir, "people.json");
 
   async function read<T>(file: string): Promise<T | undefined> {
     try {
@@ -144,6 +205,25 @@ function fileStore(): Store {
       delete data[email][taskId];
       await write(progressFile, data);
     },
+    async recordVisit(email, name) {
+      const people = (await read<Record<string, Person>>(peopleFile)) ?? {};
+      const now = Date.now();
+      people[email] = { email, name, firstSeen: people[email]?.firstSeen ?? now, lastSeen: now };
+      await write(peopleFile, people);
+    },
+    async listPeople() {
+      return Object.values((await read<Record<string, Person>>(peopleFile)) ?? {});
+    },
+    async listCompletions() {
+      const data = (await read<Progress>(progressFile)) ?? {};
+      return Object.entries(data).flatMap(([email, tasks]) =>
+        Object.entries(tasks).map(([taskId, at]) => ({
+          email,
+          taskId,
+          completedAt: Date.parse(at),
+        })),
+      );
+    },
     async readCurriculumSnapshot() {
       const file = await read<StoredSnapshot & { fetchedAt: number }>(snapshotFile);
       return file ? fromStored(file, file.fetchedAt) : undefined;
@@ -162,6 +242,9 @@ export const {
   completedTaskIds,
   markComplete,
   markIncomplete,
+  recordVisit,
+  listPeople,
+  listCompletions,
   readCurriculumSnapshot,
   saveCurriculumSnapshot,
 } = store;
