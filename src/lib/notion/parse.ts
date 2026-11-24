@@ -34,7 +34,7 @@ export function parseCurriculum(blocks: NotionBlock[]): Section[] {
       const task = parseTask(block);
       if (task) current.tasks.push(task);
     } else if (block.type === "callout") {
-      const note = parseTask(block);
+      const note = parseTask(withTitleLine(block));
       if (note) current.tasks.push({ ...note, note: true, icon: calloutEmoji(block) });
     } else if (block.type === "paragraph" && current.tasks.length === 0) {
       const text = plainText(richText(block));
@@ -79,6 +79,15 @@ function parseTask(block: NotionBlock): Task | undefined {
   }
 
   return { id: block.id, title, description, resources };
+}
+
+// A callout's title is normally its own text. Callouts created through some
+// Notion tools keep that text empty and put every line inside the box
+// instead; then the first line inside is the title.
+function withTitleLine(block: NotionBlock): NotionBlock {
+  const [first, ...rest] = block.children ?? [];
+  if (plainText(richText(block)) || first?.type !== "paragraph") return block;
+  return { ...block, [block.type]: { ...(block[block.type] as object), rich_text: richText(first) }, children: rest };
 }
 
 function calloutEmoji(block: NotionBlock): string | undefined {

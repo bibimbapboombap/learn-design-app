@@ -39,9 +39,11 @@ const tree: Record<string, any[]> = {
     b("t3", "toggle", [t("Redesign a screen")], true),
     b("blank", "bulleted_list_item", [t("   ")]),
     b("note", "callout", [t("Weekly rhythm")], true, { icon: { type: "emoji", emoji: "🗓️" } }),
+    b("note2", "callout", [], true, { icon: { type: "emoji", emoji: "🎨" } }),
   ],
   t3: [b("d3", "paragraph", [t("Line one")]), b("d4", "paragraph", [t("Line two")])],
   note: [b("n1", "paragraph", [t("3–4 h reading.")]), b("n2", "bulleted_list_item", [t("Guide", "https://example.com/guide")])],
+  note2: [b("m1", "paragraph", [t("The practice track")]), b("m2", "paragraph", [t("Figma: one feature at a time.")])],
 };
 
 test("reads a Notion page into sections and tasks", async () => {
@@ -77,7 +79,7 @@ test("reads a Notion page into sections and tasks", async () => {
   ]);
   assert.deepEqual(found.tasks[1].resources.map((r: any) => r.title),
     ["practicaltypography.com", "youtube.com/watch", "A", "B"]);
-  assert.equal(practice.tasks.length, 2);
+  assert.equal(practice.tasks.length, 3);
   assert.equal(practice.tasks[0].description, "Line one\nLine two");
   assert.equal(practice.tasks[0].note, undefined);
   // A callout becomes an info card, keeping its icon, description and links.
@@ -88,6 +90,15 @@ test("reads a Notion page into sections and tasks", async () => {
     resources: [{ title: "Guide", url: "https://example.com/guide" }],
     note: true,
     icon: "🗓️",
+  });
+  // A callout with no text of its own takes its first line inside as the title.
+  assert.deepEqual(practice.tasks[2], {
+    id: "note2",
+    title: "The practice track",
+    description: "Figma: one feature at a time.",
+    resources: [],
+    note: true,
+    icon: "🎨",
   });
 });
 
