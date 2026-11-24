@@ -8,9 +8,11 @@ import styles from "./task-list.module.css";
 type Props = {
   sections: Section[];
   completedIds: string[];
+  // Tasks added since this person started; labelled NEW until done.
+  newIds: string[];
 };
 
-export function TaskList({ sections, completedIds }: Props) {
+export function TaskList({ sections, completedIds, newIds }: Props) {
   const [completed, setOptimisticCompleted] = useOptimistic(
     new Set(completedIds),
     (current, change: { taskId: string; done: boolean }) => {
@@ -25,6 +27,8 @@ export function TaskList({ sections, completedIds }: Props) {
   const tasks = sections.flatMap((section) => section.tasks).filter((task) => !task.note);
   const doneCount = tasks.filter((task) => completed.has(task.id)).length;
   const percent = tasks.length ? Math.round((doneCount / tasks.length) * 100) : 0;
+  const isNew = new Set(newIds);
+  const newCount = tasks.filter((task) => isNew.has(task.id)).length;
 
   function toggle(taskId: string, done: boolean) {
     setError(null);
@@ -63,6 +67,14 @@ export function TaskList({ sections, completedIds }: Props) {
         </div>
       </div>
 
+      {newCount > 0 && (
+        <p className={styles.newHint}>
+          <span className={styles.newTag}>NEW</span>{" "}
+          {newCount} {newCount === 1 ? "task was" : "tasks were"} added since you started. Look for this
+          label.
+        </p>
+      )}
+
       {error && (
         <p className={styles.error} role="alert">
           {error}
@@ -96,13 +108,16 @@ export function TaskList({ sections, completedIds }: Props) {
                     />
                   )}
                   <div className={styles.body}>
-                    {task.note ? (
-                      <p className={styles.taskTitle}>{task.title}</p>
-                    ) : (
-                      <label htmlFor={inputId} className={styles.taskTitle}>
-                        {task.title}
-                      </label>
-                    )}
+                    <div className={styles.titleRow}>
+                      {task.note ? (
+                        <p className={styles.taskTitle}>{task.title}</p>
+                      ) : (
+                        <label htmlFor={inputId} className={styles.taskTitle}>
+                          {task.title}
+                        </label>
+                      )}
+                      {isNew.has(task.id) && !done && <span className={styles.newTag}>NEW</span>}
+                    </div>
                     {task.description && (
                       <p className={styles.taskDescription}>{task.description}</p>
                     )}

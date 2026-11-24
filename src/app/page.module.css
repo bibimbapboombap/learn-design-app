@@ -105,5 +105,7 @@
 
   .who {
     flex-direction: column;
+    /* Without this the email line keeps its full width and runs under the buttons. */
+    flex-wrap: nowrap;
   }
 }

@@ -17,7 +17,7 @@ const tree: Record<string, any[]> = {
     b("orphan", "bulleted_list_item", [t("Above first heading, ignored")]),
     b("h-found", "heading_2", [t("Foundations")]),
     b("p1", "paragraph", [t("Start here.")]),
-    b("t1", "bulleted_list_item", [t("Read "), t("The Design", "https://nngroup.com/book"), t(" of Everyday Things", "https://nngroup.com/book")], true),
+    { ...b("t1", "bulleted_list_item", [t("Read "), t("The Design", "https://nngroup.com/book"), t(" of Everyday Things", "https://nngroup.com/book")], true), created_time: "2026-11-24T23:00:28.000Z" },
   ],
   PAGE_2: [
     b("t2", "to_do", [t("Typography basics")], true),
@@ -73,6 +73,8 @@ test("reads a Notion page into sections and tasks", async () => {
   assert.deepEqual(found.tasks.map((x: any) => x.id), ["t1", "t2"]);
   assert.equal(found.tasks[0].title, "Read The Design of Everyday Things");
   assert.equal(found.tasks[0].description, "Focus on chapters 1–2.");
+  assert.equal(found.tasks[0].addedAt, Date.parse("2026-11-24T23:00:28.000Z"));
+  assert.equal("addedAt" in found.tasks[1], false, "no created_time, no addedAt");
   assert.deepEqual(found.tasks[0].resources, [
     { title: "The Design of Everyday Things", url: "https://nngroup.com/book" },
     { title: "Don Norman: NN/g page", url: "https://www.nngroup.com/books/x" },

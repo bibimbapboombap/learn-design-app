@@ -36,6 +36,8 @@ type Store = {
   markComplete(email: string, name: string, taskId: string): Promise<boolean>;
   markIncomplete(email: string, taskId: string): Promise<void>;
   recordVisit(email: string, name: string): Promise<void>;
+  // When this person first opened the app, if they have.
+  firstSeen(email: string): Promise<number | undefined>;
   // For the admin overview: everyone, and every completion.
   listPeople(): Promise<Person[]>;
   listCompletions(): Promise<Completion[]>;
@@ -117,6 +119,13 @@ function postgresStore(databaseUrl: string): Store {
         insert into people (email, name) values (${email}, ${name})
         on conflict (email) do update set name = excluded.name, last_seen = now()
       `;
+    },
+    async firstSeen(email) {
+      await ensureTables();
+      const rows = await sql`
+        select extract(epoch from first_seen) * 1000 as first_ms from people where email = ${email}
+      `;
+      return rows[0] ? Number(rows[0].first_ms) : undefined;
     },
     async listPeople() {
       await ensureTables();
@@ -211,6 +220,9 @@ function fileStore(): Store {
       people[email] = { email, name, firstSeen: people[email]?.firstSeen ?? now, lastSeen: now };
       await write(peopleFile, people);
     },
+    async firstSeen(email) {
+      return (await read<Record<string, Person>>(peopleFile))?.[email]?.firstSeen;
+    },
     async listPeople() {
       return Object.values((await read<Record<string, Person>>(peopleFile)) ?? {});
     },
@@ -243,6 +255,7 @@ export const {
   markComplete,
   markIncomplete,
   recordVisit,
+  firstSeen,
   listPeople,
   listCompletions,
   readCurriculumSnapshot,

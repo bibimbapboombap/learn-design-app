@@ -3,7 +3,8 @@ import { after } from "next/server";
 import { Suspense } from "react";
 import { getCurriculum } from "@/lib/curriculum";
 import { getCurrentUser } from "@/lib/current-user";
-import { completedTaskIds, recordVisit } from "@/lib/store";
+import { newTaskIds } from "@/lib/new-tasks";
+import { completedTaskIds, firstSeen, recordVisit } from "@/lib/store";
 import { signOutAction } from "./actions";
 import { TaskList } from "./task-list";
 import styles from "./page.module.css";
@@ -31,10 +32,12 @@ export default function HomePage() {
 
 async function Plan() {
   const user = await getCurrentUser();
-  const [sections, completedIds] = await Promise.all([
+  const [sections, completedIds, startedAt] = await Promise.all([
     getCurriculum(),
     completedTaskIds(user.email),
+    firstSeen(user.email),
   ]);
+  const newIds = newTaskIds(sections, startedAt);
   // Feeds "last visit" on the admin overview; doesn't hold up the page.
   after(() =>
     recordVisit(user.email, user.name).catch((error) =>
@@ -64,7 +67,7 @@ async function Plan() {
         </form>
       </div>
 
-      <TaskList sections={sections} completedIds={completedIds} />
+      <TaskList sections={sections} completedIds={completedIds} newIds={newIds} />
     </>
   );
 }

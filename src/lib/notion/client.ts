@@ -11,6 +11,7 @@ export type NotionBlock = {
   id: string;
   type: string;
   has_children: boolean;
+  created_time?: string;
   children?: NotionBlock[];
 } & Record<string, unknown>;
 

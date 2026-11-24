@@ -16,6 +16,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 - Task ids are Notion block ids and double as storage keys for completions. The page format the parser expects is documented in `src/lib/notion/parse.ts` and in a callout on the Notion page; keep the two in sync.
 - Notion is slow to read in full (~1 request per task, ~3 req/s), so pages always render from the snapshot and refresh it with `after()`; never fetch Notion on the request path except for the very first load.
 - `/admin` (`src/app/admin/page.tsx`) is gated by `getCurrentUser().isAdmin` inside its Suspense boundary; keep the heading and all data behind that check. The overview math lives in `src/lib/overview.ts`.
-- `src/lib/notion/*` and `src/lib/overview.ts` have no runtime imports so `npm test` can run them with plain Node. Keep it that way.
+- Tasks are labelled NEW for a person when their Notion block was created after that person's first visit and within the last 30 days (`src/lib/new-tasks.ts`); nothing in Notion marks them.
+- `src/lib/notion/*`, `src/lib/overview.ts` and `src/lib/new-tasks.ts` have no runtime imports so `npm test` can run them with plain Node. Keep it that way.
 - Styling is plain CSS Modules plus the tokens in `src/app/globals.css`. Light theme only, Notion-like, must work on phones.
 - Check work with `npm run lint`, `npm run typecheck`, `npm test` and `npm run build`.

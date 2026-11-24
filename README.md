@@ -39,6 +39,11 @@ takes around half a minute. So an edit shows up a minute or so later, after a
 reload. The very first visit after setup waits for that full read: open the
 site once yourself after deploying.
 
+**NEW labels** appear by themselves: a task gets one when it was added to the
+page after that student first opened the app, and within the last 30 days.
+The label disappears after 30 days, or once the student ticks the task. A
+student who joins later sees no labels, since everything is new to them.
+
 Progress is stored against each task's Notion block id. Renaming or moving a
 task keeps everyone's ticks; deleting it and typing it again creates a new task.
 

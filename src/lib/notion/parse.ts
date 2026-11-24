@@ -78,7 +78,14 @@ function parseTask(block: NotionBlock): Task | undefined {
     }
   }
 
-  return { id: block.id, title, description, resources };
+  const addedAt = block.created_time ? Date.parse(block.created_time) : NaN;
+  return {
+    id: block.id,
+    title,
+    description,
+    resources,
+    ...(Number.isFinite(addedAt) && { addedAt }),
+  };
 }
 
 // A callout's title is normally its own text. Callouts created through some

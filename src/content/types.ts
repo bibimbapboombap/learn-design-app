@@ -16,6 +16,8 @@ export type Task = {
   // Info cards (Notion callouts) have no checkbox and don't count as tasks.
   note?: boolean;
   icon?: string;
+  // When the task was added to the Notion page (ms since epoch).
+  addedAt?: number;
 };
 
 export type Section = {
